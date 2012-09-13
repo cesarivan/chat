@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html >
+    <head>
+        <title>Chat NodeJS</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+        <script src="/nowjs/now.js"></script>
+        <link rel='stylesheet' href='style.css' type='text/css' media='screen' />
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        <script>
+            $(document).ready(function(){
+
+                $('#launch').click(function() {
+                    startApp();
+                });
+
+                $(".imagenes_chat").live("click",function(){
+                     elemento = $(this).parent();
+                     id = $(this).parent().attr("id");
+                     chat = id.split("ventanaMoti-");
+                     console.log(chat);
+                     $("#msg-"+chat[1]).val(  $("#msg-"+chat[1]).val() + $(this).attr("title"));
+                    
+                
+                
+                });
+                $(".moticos").live("click",function(){
+                     
+                     chat =  $(this).attr("id");
+                     chat = chat.split("moti-");
+                     $(".motico#ventanaMoti-"+chat[1]).html($(".motiOcultos").html());
+                     if( $(".motico#ventanaMoti-"+chat[1]).css("display") == "none"){
+                        $(".motico#ventanaMoti-"+chat[1]).css({"display":"block"});
+                    }else{
+                        $(".motico#ventanaMoti-"+chat[1]).css({"display":"none"});
+                        
+                     }
+                     
+                     
+                });
+                
+                function startApp(){
+                    if($('#login').val() != ""){
+                        now.name = $('#login').val();
+                        now.ready(function(){
+                            $('#loginbox').fadeOut();
+                            
+                            now.newClient(now.name);
+                        });
+                    }
+                }
+
+                
+                $('#clientList a').live('click',function(){
+                    var idClient = $(this).attr('id');
+                    // L'id du chat est égal à la somme des id des deux clients
+                    var idChat = (idClient)+(now.core.clientId);
+                    var idChat2 = (now.core.clientId) + (idClient);
+                    if ($('#'+idChat).length == 0 &&  $('#'+idChat2).length == 0){
+                        now.openChat(idClient);
+                    } else if($('#'+idChat).length){
+                        $('#'+idChat).css('display','block');
+                    } else if($('#'+idChat2).length){
+                        
+                         $('#'+idChat2).css('display','block');
+                    }
+                });
+
+               
+                now.addChat = function(idChat,idRecever,recever,sender,mensajes){
+                    
+                   var ultimosMensajes = "";
+                    $.each(mensajes,function(key,value){
+                        ultimosMensajes += '<div class="user-msg">';
+                        ultimosMensajes += '<div class="user-avatar"><img src="'+value.imagen+'" width="32" height="32"></div>';
+                        ultimosMensajes += '<div class="user-text">'+value.mensaje+'</div></div>';
+                        
+                        
+                    });
+                    var login;
+                    if(idRecever == now.core.clientId) login = sender;
+                    else login = recever;
+                    $('#chatList').append('<div class="popup-chat" id="'+idChat+'"><div class="popup-chat-header">'+login+' <a href="#null" rel="'+idChat+'"><img src="img/close.gif" alt="" /></a></div><div class="popup-chat-talk">'+ultimosMensajes+'</div><div class="popup-chat-input"><input name="'+idChat+'" id="msg-'+idChat+'" type="text" /><div class="moticos" id="moti-'+idChat+'"  ></div>  <div class="motico" id="ventanaMoti-'+idChat+'" ></div> </div></div></div>');
+                    $('#msg-'+idChat).focus();
+                }
+
+                
+                $(document).keypress(function(e) {
+                    if(e.keyCode == 13) {
+                        var id = e.target.name;
+                        if($('#msg-'+id).val() != ''){
+                            var msg = $('#msg-'+id).val();
+                            $('#msg-'+id).val('');
+                            now.sendMessage(msg,id);
+                            elemento = $(".popup-chat#"+id+" .popup-chat-talk");
+                            elemento.animate({
+                                scrollTop: elemento.attr("scrollHeight")
+                            }, 2000);
+                        }
+                    }
+                });
+
+               
+                now.displayMessage = function(idChat, message,imagen){
+                    $('#'+idChat).css('display','block');
+                    
+                    $('#'+idChat+' .popup-chat-talk').append('<div class="user-msg"><div class="user-avatar"><img src="'+imagen+'" width="32" height="32"></div><div class="user-text">'+message+'</div></div>');
+                    
+                }
+
+                
+                $('.popup-chat-header a').live('click',function(){
+                    var idChat = $(this).attr('rel');
+                    $('#'+idChat).css('display','none');
+                });
+
+                
+                now.updateClientList = function(clients){
+                    var c=0;
+                    $("#clientList").html('');
+                    for(var i in clients) {
+                        if(i != now.core.clientId) {
+                            c++;
+                            $('#clientList').append('<a id="'+i+'" href="#null"><li><img alt="'+clients[i].login +'" src="'+clients[i].imagen+'" width="28" height="28"><div>'+clients[i].login +'</div></li></a>');
+                        }
+                    }
+                    if(c == 0) $('#clientList').append("<li class='alone'>mmm no hay nadie conectado</li>");
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <div class="motiOcultos" >
+            <img src="http://www.emoticonesfacebook.com/images/fb_grin.png" title=":D" class="imagenes_chat"  />
+            
+        </div>
+        <div id="loginbox">
+            Cual es tu nombre ?</br>
+            <input type="text" id="login"/><input type="button" value="Entrar" id="launch">
+        </div>
+        <div id="nav-right">
+            <ul id="clientList">
+            </ul>
+        </div>
+        <div id="chatList">
+        </div>
+    </body>
+</html>
